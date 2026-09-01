@@ -1,67 +1,64 @@
 import DownloadButton from './DownloadButton';
 
+function formatUploadedAt(uploadedAt) {
+  const date = new Date(uploadedAt);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'data indisponível';
+  }
+
+  return date.toLocaleString('pt-BR');
+}
+
 export default function DocumentList({ documents, ownerFilter, onOwnerFilterChange, onRefresh }) {
   return (
-    <section style={{ marginTop: '2rem' }}>
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
-        <label htmlFor="ownerFilter" style={{ fontWeight: 600 }}>
-          Filtrar por owner
-        </label>
-        <input
-          id="ownerFilter"
-          type="text"
-          value={ownerFilter}
-          onChange={(event) => onOwnerFilterChange(event.target.value)}
-          placeholder="Ex.: alice"
-          style={{
-            padding: '0.6rem 0.8rem',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            minWidth: '180px',
-          }}
-        />
-        <button
-          type="button"
-          onClick={onRefresh}
-          style={{
-            padding: '0.6rem 0.9rem',
-            background: '#111827',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-          }}
-        >
-          Atualizar
-        </button>
+    <section>
+      <div className="mb-5 flex flex-col gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-950">Documentos</h2>
+          <p className="mt-1 text-sm text-slate-600">Filtre por owner ou atualize a lista manualmente.</p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label htmlFor="ownerFilter" className="grid gap-1.5 text-sm font-medium text-slate-700">
+            <span>Filtrar por owner</span>
+            <input
+              id="ownerFilter"
+              type="text"
+              value={ownerFilter}
+              onChange={(event) => onOwnerFilterChange(event.target.value)}
+              placeholder="Ex.: alice"
+              className="min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-600 focus:ring-2 focus:ring-teal-100 sm:w-48"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={onRefresh}
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-200 focus:ring-offset-2"
+          >
+            Atualizar
+          </button>
+        </div>
       </div>
 
       {documents.length === 0 ? (
-        <p style={{ color: '#4b5563' }}>Nenhum documento encontrado.</p>
+        <div className="rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-10 text-center text-sm text-slate-600">
+          Nenhum documento encontrado.
+        </div>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.9rem' }}>
+        <ul className="grid gap-3">
           {documents.map((document) => (
             <li
               key={document.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: '1rem',
-                alignItems: 'center',
-                padding: '1rem',
-                border: '1px solid #e5e7eb',
-                borderRadius: '10px',
-                background: '#f9fafb',
-                flexWrap: 'wrap',
-              }}
+              className="flex flex-col gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 transition hover:border-teal-200 hover:bg-white sm:flex-row sm:items-center sm:justify-between"
             >
-              <div>
-                <strong>{document.originalName}</strong>
-                <div style={{ color: '#4b5563', fontSize: '0.9rem' }}>
+              <div className="min-w-0">
+                <strong className="block truncate text-sm font-semibold text-slate-950">{document.originalName}</strong>
+                <div className="mt-1 text-sm text-slate-600">
                   Owner: {document.owner} · {document.size} bytes
                 </div>
-                <div style={{ color: '#6b7280', fontSize: '0.8rem' }}>
-                  Enviado em {new Date(document.uploadedAt).toLocaleString()}
+                <div className="mt-1 text-xs text-slate-500">
+                  Enviado em {formatUploadedAt(document.uploadedAt)}
                 </div>
               </div>
 

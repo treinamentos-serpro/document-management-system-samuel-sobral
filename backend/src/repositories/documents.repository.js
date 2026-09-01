@@ -4,6 +4,19 @@ const path = require('node:path');
 const documents = [];
 const storageDirectory = path.resolve(__dirname, '../../storage');
 
+function resolveStoragePath(storedName) {
+  const filePath = path.resolve(storageDirectory, storedName);
+  const storageRoot = `${storageDirectory}${path.sep}`;
+
+  if (!filePath.startsWith(storageRoot)) {
+    const error = new Error('Caminho interno do arquivo inválido.');
+    error.code = 'INVALID_STORAGE_PATH';
+    throw error;
+  }
+
+  return filePath;
+}
+
 async function ensureStorageDirectory() {
   await fs.mkdir(storageDirectory, { recursive: true });
 }
@@ -19,7 +32,7 @@ async function createDocument({ id, originalName, storedName, mimeType, size, ow
     size,
     uploadedAt: new Date().toISOString(),
     owner: owner || 'anonymous',
-    filePath: path.join(storageDirectory, storedName),
+    filePath: resolveStoragePath(storedName),
   };
 
   documents.push(document);

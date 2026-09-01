@@ -2,6 +2,12 @@ const fs = require('node:fs');
 
 const documentsService = require('../services/documents.service');
 
+function buildContentDisposition(originalName) {
+  const safeName = (originalName || 'documento').replace(/[\r\n"]/g, '_');
+  const encodedName = encodeURIComponent(safeName);
+  return `attachment; filename="${safeName}"; filename*=UTF-8''${encodedName}`;
+}
+
 async function uploadDocument(req, res) {
   try {
     if (!req.file) {
@@ -11,6 +17,7 @@ async function uploadDocument(req, res) {
     const document = await documentsService.createDocument({
       file: req.file,
       owner: req.body ? req.body.owner : undefined,
+      id: req.documentId,
     });
 
     return res.status(201).json({
@@ -49,9 +56,13 @@ async function downloadDocument(req, res) {
 
     const fileStream = fs.createReadStream(document.filePath);
     res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${document.originalName}"`);
+    res.setHeader('Content-Disposition', buildContentDisposition(document.originalName));
 
     fileStream.on('error', () => {
+      if (res.headersSent) {
+        return res.destroy();
+      }
+
       res.status(500).json({ message: 'Não foi possível recuperar o documento.' });
     });
 

@@ -49,7 +49,7 @@ export async function getDocuments(owner = '') {
 }
 
 export async function downloadDocument(id) {
-  const response = await fetch(`/api/documents/${id}/download`);
+  const response = await fetch(`/api/documents/${encodeURIComponent(id)}/download`);
 
   if (!response.ok) {
     throw new Error(await parseError(response, 'Não foi possível baixar o documento.'));
