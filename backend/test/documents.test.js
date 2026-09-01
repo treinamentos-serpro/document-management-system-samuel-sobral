@@ -31,8 +31,10 @@ test('POST /api/documents/upload salva documento e devolve metadados', async () 
     const body = await response.json();
     assert.strictEqual(body.owner, 'alice');
     assert.strictEqual(body.originalName, 'sample.txt');
-    assert.ok(body.id);
+    assert.match(body.id, UUID_PATTERN);
     assert.ok(body.uploadedAt);
+    assert.strictEqual(body.mimeType, 'text/plain');
+    assert.strictEqual(body.size, 'arquivo de teste'.length);
   } finally {
     server.close();
   }
@@ -46,18 +48,20 @@ test('GET /api/documents lista documentos por owner', async () => {
     formData.append('file', new Blob(['arquivo de teste'], { type: 'text/plain' }), 'sample.txt');
     formData.append('owner', 'bob');
 
-    await fetch(`http://127.0.0.1:${port}/api/documents/upload`, {
+    const uploadResponse = await fetch(`http://127.0.0.1:${port}/api/documents/upload`, {
       method: 'POST',
       body: formData,
     });
+    const uploaded = await uploadResponse.json();
 
     const response = await fetch(`http://127.0.0.1:${port}/api/documents?owner=bob`);
     assert.strictEqual(response.status, 200);
 
     const body = await response.json();
     assert.strictEqual(Array.isArray(body), true);
-    assert.strictEqual(body.length >= 1, true);
-    assert.strictEqual(body[0].owner, 'bob');
+    assert.ok(body.some((document) => document.id === uploaded.id && document.owner === 'bob'));
+    assert.ok(body.every((document) => document.owner === 'bob'));
+    assert.strictEqual(body.some((document) => Object.hasOwn(document, 'filePath')), false);
   } finally {
     server.close();
   }
@@ -82,6 +86,9 @@ test('GET /api/documents/:id/download retorna o arquivo salvo', async () => {
     const text = await downloadResponse.text();
 
     assert.strictEqual(downloadResponse.status, 200);
+    assert.strictEqual(downloadResponse.headers.get('content-type'), 'text/plain');
+    assert.match(downloadResponse.headers.get('content-disposition'), /attachment/);
+    assert.match(downloadResponse.headers.get('content-disposition'), /report\.txt/);
     assert.match(text, /conteúdo de teste para download/);
   } finally {
     server.close();
